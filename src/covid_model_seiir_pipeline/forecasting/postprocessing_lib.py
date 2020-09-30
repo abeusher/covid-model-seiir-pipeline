@@ -1,13 +1,19 @@
 import functools
 import multiprocessing
 from pathlib import Path
-from typing import Dict, List, Tuple
+from typing import Callable, Dict, List, Tuple
 
 import numpy as np
 import pandas as pd
 
 from covid_model_seiir_pipeline.forecasting.data import ForecastDataInterface
-from covid_model_seiir_pipeline.forecasting.specification import FORECAST_SCALING_CORES, ResamplingSpecification
+from covid_model_seiir_pipeline.forecasting.specification import (
+    FORECAST_SCALING_CORES,
+    PostprocessingSpecification,
+    ForecastSpecification,
+    ResamplingSpecification,
+    SplicingSpecification
+)
 
 
 # TODO: make a model subpackage and put this there.
@@ -285,7 +291,7 @@ def build_resampling_map(deaths, resampling_params: ResamplingSpecification):
                         .drop(columns=['date', 'observed']))
     upper_deaths = reference_deaths.quantile(resampling_params.upper_quantile, axis=1)
     lower_deaths = reference_deaths.quantile(resampling_params.lower_quantile, axis=1)
-    
+
     resample_map = {}
     for location_id in reference_deaths.index:
         upper, lower = upper_deaths.at[location_id], lower_deaths.at[location_id]
@@ -417,3 +423,17 @@ def collapse_population(population_data: pd.DataFrame, hierarchy: pd.DataFrame) 
     population_data = population_data.loc[most_detailed & all_ages & all_sexes, ['location_id', 'population']]
     population_data = population_data.set_index('location_id')['population']
     return population_data
+
+
+def splice_previous_results(data: pd.DataFrame, loader: Callable[[ForecastDataInterface], pd.DataFrame], splicing_configs: List[SplicingSpecification]):
+    for splicing_config in splicing_configs:
+        splice_pp_spec_path = Path(splicing_config.output_version) / 'postprocessing_specification.yaml'
+        splice_pp_spec = PostprocessingSpecification.from_path(splice_pp_spec_path)
+        splice_forecast_spec = ForecastSpecification.from_path(splice_pp_spec.data.forecast_version)
+        splice_data_interface = ForecastDataInterface.from_specification(splice_forecast_spec, splice_pp_spec)
+        splice_data = splice_data_interface.load_output_draws(scenario_name, measure)
+        measure_data.loc[splicing_config.locations] = (splice_data
+                                                       .set_index(measure_data.index.names)
+                                                       .loc[splicing_config.locations])
+
+

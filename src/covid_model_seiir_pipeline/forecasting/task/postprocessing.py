@@ -15,6 +15,7 @@ from covid_model_seiir_pipeline.forecasting.specification import (
     PostprocessingSpecification
 )
 from covid_model_seiir_pipeline.forecasting.data import ForecastDataInterface
+from covid_model_seiir_pipeline.forecasting.specification import SplicingSpecification, PostprocessingSpecification
 from covid_model_seiir_pipeline.forecasting import postprocessing_lib as pp
 
 
@@ -196,6 +197,7 @@ MISCELLANEOUS = {
 
 def postprocess_measure(data_interface: ForecastDataInterface,
                         resampling_map: Dict[int, Dict[str, List[int]]],
+                        splicing_configs: List[SplicingSpecification],
                         scenario_name: str, measure: str) -> None:
     measure_config = MEASURES[measure]
     logger.info(f'Loading {measure}.')
@@ -205,6 +207,8 @@ def postprocess_measure(data_interface: ForecastDataInterface,
         measure_data = pd.concat(measure_data, axis=1)
     logger.info(f'Resampling {measure}.')
     measure_data = pp.resample_draws(measure_data, resampling_map)
+
+
 
     if measure_config.aggregator is not None:
         hierarchy = pp.load_modeled_hierarchy(data_interface)
@@ -228,6 +232,7 @@ def postprocess_measure(data_interface: ForecastDataInterface,
 
 def postprocess_covariate(data_interface: ForecastDataInterface,
                           resampling_map: Dict[int, Dict[str, List[int]]],
+                          splicing_configs: List[SplicingSpecification],
                           scenario_spec: ScenarioSpecification,
                           scenario_name: str, covariate: str) -> None:
     covariate_config = COVARIATES[covariate]
@@ -236,6 +241,7 @@ def postprocess_covariate(data_interface: ForecastDataInterface,
     logger.info(f'Concatenating and resampling {covariate}.')
     covariate_data = pd.concat(covariate_data, axis=1)
     covariate_data = pp.resample_draws(covariate_data, resampling_map)
+    covariate_data = pp.splice_previous_results(covariate_data, covariate_config.loader, splicing_configs)
 
     if covariate_config.aggregator is not None:
         hierarchy = pp.load_modeled_hierarchy(data_interface)
@@ -273,10 +279,12 @@ def postprocess_covariate(data_interface: ForecastDataInterface,
 
 
 def postprocess_miscellaneous(data_interface: ForecastDataInterface,
+                              splicing_configs: List[SplicingSpecification],
                               scenario_name: str, measure: str):
     miscellaneous_config = MISCELLANEOUS[measure]
     logger.info(f'Loading {measure}.')
     miscellaneous_data = miscellaneous_config.loader(data_interface)
+    miscellaneous_data = pp.splice_previous_results(miscellaneous_data, miscellaneous_config.loader, splicing_configs)
 
     if miscellaneous_config.aggregator is not None:
         hierarchy = pp.load_modeled_hierarchy(data_interface)
@@ -308,11 +316,12 @@ def run_seir_postprocessing(output_version: str, scenario_name: str, measure: st
     resampling_map = data_interface.load_resampling_map()
 
     if measure in MEASURES:
-        postprocess_measure(data_interface, resampling_map, scenario_name, measure)
+        postprocess_measure(data_interface, resampling_map, postprocessing_spec.splicing, scenario_name, measure)
     elif measure in COVARIATES:
-        postprocess_covariate(data_interface, resampling_map, scenario_spec, scenario_name, measure)
+        postprocess_covariate(data_interface, resampling_map, postprocessing_spec.splicing,
+                              scenario_spec, scenario_name, measure)
     elif measure in MISCELLANEOUS:
-        postprocess_miscellaneous(data_interface, scenario_name, measure)
+        postprocess_miscellaneous(data_interface, postprocessing_spec.splicing, scenario_name, measure)
     else:
         raise NotImplementedError(f'Unknown measure {measure}.')
 

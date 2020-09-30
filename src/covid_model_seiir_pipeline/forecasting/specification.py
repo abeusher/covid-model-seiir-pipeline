@@ -171,7 +171,7 @@ class PostprocessingData:
 class SplicingSpecification:
     """Specifies locations and inputs for splicing."""
     locations: list = field(default_factory=list)
-    forecast_version: str = field(default='')
+    output_version: str = field(default='')
 
     def to_dict(self) -> Dict:
         """Converts to a dict, coercing list-like items to lists."""
