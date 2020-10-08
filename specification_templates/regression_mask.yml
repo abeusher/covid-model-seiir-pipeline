@@ -41,13 +41,6 @@ covariates:
     bounds: [0.0, 1000.0]
     re_var: 1.0
     draws: False
-  mask_use:
-    order: 0
-    use_re: False
-    gprior: [0., 0.21]
-    bounds: [-0.52, 0.0]
-    re_var: 1.0
-    draws: False
   testing:
     order: 0
     use_re: False

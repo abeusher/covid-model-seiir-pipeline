@@ -48,13 +48,6 @@ covariates:
     bounds: [-0.52, 0.0]
     re_var: 1.0
     draws: False
-  testing:
-    order: 0
-    use_re: False
-    gprior: [0.0, 40.0]
-    bounds: [-80.0, 0.0]
-    re_var: 1.0
-    draws: False
   air_pollution_pm_2_5:
     order: 0
     use_re: False

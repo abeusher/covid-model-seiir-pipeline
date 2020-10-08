@@ -54,7 +54,7 @@ def do_predictive_validity(app_metadata: cli_tools.Metadata,
             forecast_specification.scenarios[scenario].theta = theta
             forecast_specification.scenarios[scenario].beta_scaling['average_over_max'] = average_over_max
             forecast_stub = f'theta_{theta}_avg_over_max_{average_over_max}'
-            forecast_dir_name = f'{regression_dir_name}_{forecast_stub}'
+            forecast_dir_name = f'{regression_dir_name}'
             forecast_dir = forecast_root / forecast_dir_name
             forecast_specification.data.output_root = str(forecast_dir)
             shell_tools.mkdir(forecast_dir, exists_ok=True)
