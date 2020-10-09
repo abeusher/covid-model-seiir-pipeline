@@ -1,0 +1,31 @@
+data:
+  regression_version: /ihme/covid-19/seir-oos-tests/2020_10_07.02/no_mobility/regression/holdout_28_alpha_0.9_1.0
+  covariate_version: /ihme/covid-19/seir-covariates/2020_10_01.05
+  output_root: /ihme/covid-19/seir-oos-tests/2020_10_07.02/no_mobility/forecast/holdout_28_alpha_0.9_1.0
+postprocessing:
+  resampling:
+    reference_scenario: worse
+    lower_quantile: 0.025
+    upper_quantile: 0.975
+scenarios:
+  worse:
+    algorithm: normal
+    algorithm_params: {}
+    system: new_theta
+    solver: RK45
+    beta_scaling:
+      window_size: 42
+      average_over_min: 7
+      average_over_max: 42
+      offset_deaths_lower: 150
+      offset_deaths_upper: 300
+    theta: /ihme/covid-19/seir-parameters/2020_09_30.01/thetas.csv
+    covariates:
+      pneumonia: reference
+      mask_use: reference
+      testing: reference
+      air_pollution_pm_2_5: reference
+      smoking_prevalence: reference
+      lri_mortality: reference
+      proportion_under_100m: reference
+      proportion_over_2_5k: reference

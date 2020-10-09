@@ -9,8 +9,8 @@ from covid_shared import shell_tools
 from loguru import logger
 
 
-PROJECT = 'proj_dq'
-QUEUE = 'd.q'
+PROJECT = 'proj_covid_prod' #'proj_dq'
+QUEUE = 'all.q' #'d.q'
 F_MEM = '5.0G'
 F_THREAD = '15'
 H_RUNTIME = '03:00:00'

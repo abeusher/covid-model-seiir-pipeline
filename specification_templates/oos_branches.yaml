@@ -1,4 +1,4 @@
-output_root: '/ihme/covid-19/seir-oos-tests/2020_10_07.02/no_pneumonia/' # add suffix (like 'drop_mobility')
+output_root: '/ihme/covid-19/seir-oos-tests/2020_10_07.02/no_testing/' # add suffix (like 'drop_mobility')
 forecast_scenario: 'worse'
 holdout_versions:
   - holdout_days: 0
